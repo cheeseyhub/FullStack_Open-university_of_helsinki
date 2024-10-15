@@ -1,12 +1,13 @@
 sequenceDiagram
 
-participant browser
-participant server
+    participant browser
 
-browser->>server: POST https://studies.cs.helsinki.fi/exampleapp/new_note_spa
+    participant server
 
-activate server
+    browser->>server: POST https://studies.cs.helsinki.fi/exampleapp/new_note_spa
 
-server-->>browser: 201 Created {"content":"new_note", "date":"15-10-2024"}
+    activate server
 
-deactivate server
+    server-->>browser: 201 Created {"content":"new_note", "date":"15-10-2024"}
+
+    deactivate server
