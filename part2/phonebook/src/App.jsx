@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
+import axiosService from "./services/axiosService";
 import axios from "axios";
-
 function Filter({ filterName, handleFilter }) {
   return (
     <>
@@ -36,8 +36,13 @@ function Form({
     </>
   );
 }
-function NameAndNumberDisplay({ newName, newPhoneNumber, personsToShow }) {
-  console.log(personsToShow);
+
+function NameAndNumberDisplay({
+  newName,
+  newPhoneNumber,
+  personsToShow,
+  Delete,
+}) {
   return (
     <>
       {personsToShow.map((person) => {
@@ -46,6 +51,14 @@ function NameAndNumberDisplay({ newName, newPhoneNumber, personsToShow }) {
             {person.name}
             &nbsp;
             {person.number}
+            &nbsp;
+            <button
+              onClick={() => {
+                Delete(person);
+              }}
+            >
+              Delete
+            </button>
           </p>
         );
       })}
@@ -60,8 +73,8 @@ function NameAndNumberDisplay({ newName, newPhoneNumber, personsToShow }) {
 const App = () => {
   const [persons, setPersons] = useState([]);
   useEffect(() => {
-    axios.get("http://localhost:3001/persons").then((Response) => {
-      setPersons(Response.data);
+    axiosService.getAll().then((response) => {
+      setPersons(response);
     });
   }, []);
   const [newName, setNewName] = useState("");
@@ -77,21 +90,37 @@ const App = () => {
   function addPerson(event) {
     event.preventDefault();
     const personObject = {
-      id: persons.length + 1,
-      name: newName,
+      id: `${persons.length + 1}`,
+      name: newName.trim(),
       number: newPhoneNumber,
     };
 
     const sameNameEntry = persons.some((person) => person.name === newName);
 
     if (sameNameEntry) {
-      alert(`${newName} is  already in the phonebook.`);
+      if (
+        window.confirm(
+          `${newName} is  already in the phonebook.Would you like to update the number`
+        )
+      ) {
+        const sameNamed = persons.filter((person) => person.name === newName);
+        axiosService.update(`${sameNamed[0].id}`, {
+          ...sameNamed[0],
+          number: newPhoneNumber,
+        });
+        setNewName("");
+        setNewPhoneNumber("");
+        window.location.reload();
+      }
+    } else {
+      axiosService.create(personObject).then((response) => {
+        setPersons(persons.concat(response));
+        setNewName("");
+      });
+      setPersons([...persons, personObject]);
       setNewName("");
-      return;
+      setNewPhoneNumber("");
     }
-    setPersons([...persons, personObject]);
-    setNewName("");
-    setNewPhoneNumber("");
   }
 
   function handlePersonAddition(event) {
@@ -115,6 +144,29 @@ const App = () => {
       }
     });
   }
+
+  async function Delete(person) {
+    if (window.confirm(`Do you really want to delete ${person.name}`)) {
+      await axiosService.Delete(person.id);
+      update();
+    }
+  }
+
+  async function update() {
+    const updatedDb = await axiosService.getAll();
+    setPersons(updatedDb);
+  }
+
+  async function updateNumber(person) {
+    if (person.name === newName) {
+      axiosService.update(person.id, {
+        ...person,
+        number: newPhoneNumber,
+      });
+
+      update();
+    }
+  }
   return (
     <div>
       <h2>Phonebook</h2>
@@ -137,6 +189,7 @@ const App = () => {
         newName={newName}
         newPhoneNumber={newPhoneNumber}
         personsToShow={personsToShow}
+        Delete={Delete}
       />
     </div>
   );
