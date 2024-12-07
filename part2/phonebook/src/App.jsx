@@ -70,6 +70,23 @@ function NameAndNumberDisplay({
   );
 }
 
+function Notification({ message }) {
+  if (message === "") {
+    return null;
+  }
+  if (message.includes("removed")) {
+    return (
+      <>
+        <h1 className="error">{message}</h1>
+      </>
+    );
+  }
+  return (
+    <>
+      <h1 className="message">{message}</h1>
+    </>
+  );
+}
 const App = () => {
   const [persons, setPersons] = useState([]);
   useEffect(() => {
@@ -80,7 +97,7 @@ const App = () => {
   const [newName, setNewName] = useState("");
   const [newPhoneNumber, setNewPhoneNumber] = useState("");
   const [showAll, setShowAll] = useState(true);
-
+  const [message, setMessage] = useState("");
   const [filterName, setfilterName] = useState("");
 
   const personsToShow = showAll
@@ -118,8 +135,12 @@ const App = () => {
         setNewName("");
       });
       setPersons([...persons, personObject]);
+      setMessage(`Added Successfuly ${personObject.name}`);
       setNewName("");
       setNewPhoneNumber("");
+      setTimeout(() => {
+        setMessage("");
+      }, 2000);
     }
   }
 
@@ -147,9 +168,14 @@ const App = () => {
 
   async function Delete(person) {
     if (window.confirm(`Do you really want to delete ${person.name}`)) {
-      await axiosService.Delete(person.id);
+      await axiosService.Delete(person.id).catch((error) => {
+        setMessage(`Information of ${person.name} has already been removed.`);
+      });
       update();
     }
+    setTimeout(() => {
+      setMessage("");
+    }, 5000);
   }
 
   async function update() {
@@ -170,7 +196,7 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
-
+      <Notification message={message} />
       <Filter filterName={filterName} handleFilter={handleFilter} />
 
       <h2>Add a New</h2>
