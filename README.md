@@ -1,1 +1,1 @@
-This is the repository where I complete the course of the university of helsinki on the fullstackopen website
+This is the repository where I complete the course of the university of helsinki on the fullstackopen website. The rest of the parts are in the other repository. (https://github.com/cheeseyhub/Parts_of_university_of_helsinki)
